@@ -422,7 +422,7 @@ func (h *Handler) create(config *eksv1.EKSClusterConfig) (*eksv1.EKSClusterConfi
 		return config, fmt.Errorf("error creating or getting service role: %w", err)
 	}
 
-	if err := awsservices.CreateCluster(awsservices.CreateClusterOptions{
+	if _, err := awsservices.CreateCluster(awsservices.CreateClusterOptions{
 		EKSService: h.awsServices.eks,
 		Config:     config,
 		RoleARN:    roleARN,
@@ -430,6 +430,12 @@ func (h *Handler) create(config *eksv1.EKSClusterConfig) (*eksv1.EKSClusterConfi
 		if !isClusterConflict(err) {
 			return config, fmt.Errorf("error creating cluster: %w", err)
 		}
+	}
+
+	// Test new boolean option for enabling EBS CSI driver
+	if aws.BoolValue(config.Spec.EBSCSIDriver) {
+		logrus.Infof("EBSCSIDriver is set to true: %v", config.Spec.EBSCSIDriver)
+		//awsservices.CreateOIDCProvider(config, h.awsServices.iam)
 	}
 
 	// If a user edits a cluster at the exact right (or wrong) time, then the
