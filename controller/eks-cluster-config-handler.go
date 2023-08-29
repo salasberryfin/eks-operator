@@ -884,6 +884,15 @@ func BuildUpstreamClusterState(name, managedTemplateID string, clusterState *eks
 					return nil, "", fmt.Errorf("error getting launch template info for node group [%s] in cluster [%s]", aws.StringValue(ngToAdd.NodegroupName), upstreamSpec.DisplayName)
 				}
 				launchTemplateData := launchTemplateRequestOutput.LaunchTemplateVersions[0].LaunchTemplateData
+				if launchTemplateData == nil {
+					fmt.Println("Failed because launchTemplateData is nil")
+				} else {
+					fmt.Println("LaunchTemplateData is not nil")
+					if len(launchTemplateData.BlockDeviceMappings) == 0 {
+						fmt.Println("but launchTemplateData.BlockDeviceMappings is empty")
+						return nil, "", fmt.Errorf("error getting launch template info for node group [%s] in cluster [%s]", aws.StringValue(ngToAdd.NodegroupName), upstreamSpec.DisplayName)
+					}
+				}
 
 				ngToAdd.DiskSize = launchTemplateData.BlockDeviceMappings[0].Ebs.VolumeSize
 				ngToAdd.Ec2SshKey = launchTemplateData.KeyName
